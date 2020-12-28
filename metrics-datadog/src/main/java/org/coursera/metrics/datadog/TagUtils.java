@@ -3,8 +3,6 @@ package org.coursera.metrics.datadog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.IllegalArgumentException;
-import java.lang.StringBuilder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

@@ -1,18 +1,18 @@
 package org.coursera.metrics.datadog.transport;
 
-import com.timgroup.statsd.NonBlockingStatsDClient;
+import com.timgroup.statsd.NonBlockingStatsDClientBuilder;
 import com.timgroup.statsd.StatsDClient;
-import com.timgroup.statsd.StatsDClientErrorHandler;
 import org.coursera.metrics.datadog.model.DatadogCounter;
 import org.coursera.metrics.datadog.model.DatadogGauge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
+
+import static com.timgroup.statsd.NonBlockingStatsDClient.DEFAULT_DOGSTATSD_PORT;
 
 /**
  * Uses dogstatsd UDP protocol to push metrics to datadog. Note that datadog doesn't support
@@ -26,8 +26,11 @@ import java.util.concurrent.Callable;
 public class UdpTransport implements Transport {
 
   private static final Logger LOG = LoggerFactory.getLogger(UdpTransport.class);
+
+  private static final String STATSD_HOST = "localhost";
+
   private final StatsDClient statsd;
-  private final Map lastSeenCounters = new HashMap<String, Long>();
+  private final Map<String, Long> lastSeenCounters = new HashMap<>();
 
   private UdpTransport(String prefix, String statsdHost, int port, boolean isRetryingLookup, String[] globalTags) {
     final Callable<SocketAddress> socketAddressCallable;
@@ -38,20 +41,17 @@ public class UdpTransport implements Transport {
       socketAddressCallable = staticAddressResolver(statsdHost, port);
     }
 
-    statsd = new NonBlockingStatsDClient(
-            prefix,
-            Integer.MAX_VALUE,
-            globalTags,
-            new StatsDClientErrorHandler() {
-              public void handle(Exception e) {
-                LOG.error(e.getMessage(), e);
-              }
-            },
-            socketAddressCallable
-    );
+    statsd = new NonBlockingStatsDClientBuilder()
+            .prefix(prefix)
+            .hostname(STATSD_HOST)
+            .port(DEFAULT_DOGSTATSD_PORT)
+            .constantTags(globalTags)
+            .errorHandler(e -> LOG.error(e.getMessage(), e))
+            .addressLookup(socketAddressCallable)
+            .build();
   }
 
-  public void close() throws IOException {
+  public void close() {
     statsd.stop();
   }
 
@@ -86,7 +86,7 @@ public class UdpTransport implements Transport {
     }
   }
 
-  public Request prepare() throws IOException {
+  public Request prepare() {
     return new DogstatsdRequest(statsd, lastSeenCounters);
   }
 
@@ -108,7 +108,7 @@ public class UdpTransport implements Transport {
             "will pick the first point only");
       }
       double value = gauge.getPoints().get(0).get(1).doubleValue();
-      String[] tags = gauge.getTags().toArray(new String[gauge.getTags().size()]);
+      String[] tags = gauge.getTags().toArray(new String[0]);
       statsdClient.gauge(gauge.getMetric(), value, tags);
     }
 
@@ -121,8 +121,8 @@ public class UdpTransport implements Transport {
             "will pick the first point only");
       }
       long value = counter.getPoints().get(0).get(1).longValue();
-      String[] tags = counter.getTags().toArray(new String[counter.getTags().size()]);
-      StringBuilder sb = new StringBuilder("");
+      String[] tags = counter.getTags().toArray(new String[0]);
+      StringBuilder sb = new StringBuilder();
       for (int i=tags.length - 1; i>=0; i--) {
         sb.append(tags[i]);
         if (i > 0) {
@@ -156,7 +156,7 @@ public class UdpTransport implements Transport {
   // Visible for testing.
   static Callable<SocketAddress> staticAddressResolver(final String host, final int port) {
     try {
-      return NonBlockingStatsDClient.staticAddressResolution(host, port);
+      return NonBlockingStatsDClientBuilder.staticAddressResolution(host, port);
     } catch(final Exception e) {
       LOG.error("Error during constructing statsd address resolver.", e);
       throw new RuntimeException(e);
@@ -165,6 +165,6 @@ public class UdpTransport implements Transport {
 
   // Visible for testing.
   static Callable<SocketAddress> volatileAddressResolver(final String host, final int port) {
-    return NonBlockingStatsDClient.volatileAddressResolution(host, port);
+    return NonBlockingStatsDClientBuilder.volatileAddressResolution(host, port);
   }
 }
