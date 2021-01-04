@@ -6,7 +6,7 @@ import java.io.IOException;
 
 public class AwsHelper {
 
-  public static final String url = "http://169.254.169.254/latest/meta-data/instance-id";
+  public static final String url = "http://169.254.169.254/latest/meta-data/local-ipv4";
 
   public static String getEc2InstanceId() throws IOException {
     try {
