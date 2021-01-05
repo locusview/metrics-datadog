@@ -34,9 +34,6 @@ public class DatadogReporterFactory extends BaseReporterFactory {
     @JsonProperty
     private String prefix = null;
 
-    @JsonProperty
-    private boolean useEc2Host;
-
     @Valid
     @NotNull
     @JsonProperty
@@ -55,7 +52,7 @@ public class DatadogReporterFactory extends BaseReporterFactory {
     public ScheduledReporter build(MetricRegistry registry) {
         try {
             final DatadogReporter.Builder ddReporterBuilder = DatadogReporter.forRegistry(registry);
-            ddReporterBuilder
+            final DatadogReporter.Builder builder = ddReporterBuilder
                     .withTransport(transport.build())
                     .withTags(tags)
                     .withPrefix(prefix)
@@ -66,13 +63,13 @@ public class DatadogReporterFactory extends BaseReporterFactory {
                     .convertDurationsTo(getDurationUnit())
                     .convertRatesTo(getRateUnit());
 
-            if (useEc2Host) {
-                ddReporterBuilder.withEC2Host();
+            if (host != null) {
+                builder.withHost(host);
             } else {
-                ddReporterBuilder.withHost(host);
+                builder.withEC2InstanceId();
             }
 
-            return ddReporterBuilder.build();
+            return builder.build();
         } catch (IOException e) {
             throw new RuntimeException("Error while trying to build DD ScheduledReporter", e);
         }

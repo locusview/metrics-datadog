@@ -303,8 +303,8 @@ public class DatadogReporter extends ScheduledReporter {
       return this;
     }
 
-    public Builder withEC2Host() throws IOException {
-      this.host = AwsHelper.getEc2PrivateIp();
+    public Builder withEC2InstanceId() throws IOException {
+      this.host = AwsHelper.getEc2InstanceId();
       return this;
     }
 
