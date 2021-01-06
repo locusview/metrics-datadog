@@ -3,18 +3,18 @@
     <parent>
         <groupId>com.nortecview.org.coursera</groupId>
         <artifactId>metrics-datadog-parent</artifactId>
-        <version>2.0.0.5</version>
+        <version>2.0.0.5.5</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>metrics-datadog</artifactId>
-    <name>Datadog Metrics Reporter</name>
-    <description>A Datadog reporter backend for Coda Hale's Metrics</description>
+    <name>Datadog Metrics5 Reporter</name>
+    <description>A Datadog reporter backend for Coda Hale's Metrics5</description>
 
     <dependencies>
         <dependency>
-            <groupId>io.dropwizard.metrics</groupId>
+            <groupId>io.dropwizard.metrics5</groupId>
             <artifactId>metrics-core</artifactId>
             <scope>provided</scope>
         </dependency>
