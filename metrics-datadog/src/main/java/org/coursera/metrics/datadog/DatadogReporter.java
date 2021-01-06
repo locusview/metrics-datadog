@@ -1,16 +1,6 @@
 package org.coursera.metrics.datadog;
 
-import com.codahale.metrics.Clock;
-import com.codahale.metrics.Counter;
-import com.codahale.metrics.Gauge;
-import com.codahale.metrics.Histogram;
-import com.codahale.metrics.Meter;
-import com.codahale.metrics.Metered;
-import com.codahale.metrics.MetricFilter;
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.ScheduledReporter;
-import com.codahale.metrics.Snapshot;
-import com.codahale.metrics.Timer;
+import io.dropwizard.metrics5.*;
 import org.coursera.metrics.datadog.model.DatadogGauge;
 import org.coursera.metrics.datadog.transport.Transport;
 import org.slf4j.Logger;
@@ -61,49 +51,56 @@ public class DatadogReporter extends ScheduledReporter {
     this.host = host;
     this.expansions = expansions;
     this.metricNameFormatter = metricNameFormatter;
-    this.tags = (tags == null) ? new ArrayList<String>() : tags;
+    this.tags = (tags == null) ? new ArrayList<>() : tags;
     this.transport = transport;
     this.prefix = prefix;
     this.tagsCallback = tagsCallback;
   }
 
   @Override
-  public void report(SortedMap<String, Gauge> gauges,
-                     SortedMap<String, Counter> counters,
-                     SortedMap<String, Histogram> histograms,
-                     SortedMap<String, Meter> meters,
-                     SortedMap<String, Timer> timers) {
+  public void report(SortedMap<MetricName, Gauge> gauges,
+                     SortedMap<MetricName, Counter> counters,
+                     SortedMap<MetricName, Histogram> histograms,
+                     SortedMap<MetricName, Meter> meters,
+                     SortedMap<MetricName, Timer> timers) {
     final long timestamp = clock.getTime() / 1000;
 
     List<String> newTags = tags;
     if (tagsCallback != null) {
-      List<String> dynamicTags = tagsCallback.getTags();
-      if (dynamicTags != null && ! dynamicTags.isEmpty()) {
-        newTags = TagUtils.mergeTags(tags, dynamicTags);
-      }
+        newTags = TagUtils.mergeTags(tags, tagsCallback.getTags());
     }
 
     try {
       request = transport.prepare();
 
-      for (Map.Entry<String, Gauge> entry : gauges.entrySet()) {
-        reportGauge(prefix(entry.getKey()), entry.getValue(), timestamp, newTags);
+      for (Map.Entry<MetricName, Gauge> entry : gauges.entrySet()) {
+        MetricName metricName = entry.getKey();
+        newTags = TagUtils.mergeTags(newTags, metricName);
+        reportGauge(prefix(metricName.getKey()), entry.getValue(), timestamp, newTags);
       }
 
-      for (Map.Entry<String, Counter> entry : counters.entrySet()) {
-        reportCounter(prefix(entry.getKey()), entry.getValue(), timestamp, newTags);
+      for (Map.Entry<MetricName, Counter> entry : counters.entrySet()) {
+        MetricName metricName = entry.getKey();
+        newTags = TagUtils.mergeTags(newTags, metricName);
+        reportCounter(prefix(metricName.getKey()), entry.getValue(), timestamp, newTags);
       }
 
-      for (Map.Entry<String, Histogram> entry : histograms.entrySet()) {
-        reportHistogram(prefix(entry.getKey()), entry.getValue(), timestamp, newTags);
+      for (Map.Entry<MetricName, Histogram> entry : histograms.entrySet()) {
+        MetricName metricName = entry.getKey();
+        newTags = TagUtils.mergeTags(newTags, metricName);
+        reportHistogram(prefix(metricName.getKey()), entry.getValue(), timestamp, newTags);
       }
 
-      for (Map.Entry<String, Meter> entry : meters.entrySet()) {
-        reportMetered(prefix(entry.getKey()), entry.getValue(), timestamp, newTags);
+      for (Map.Entry<MetricName, Meter> entry : meters.entrySet()) {
+        MetricName metricName = entry.getKey();
+        newTags = TagUtils.mergeTags(newTags, metricName);
+        reportMetered(prefix(metricName.getKey()), entry.getValue(), timestamp, newTags);
       }
 
-      for (Map.Entry<String, Timer> entry : timers.entrySet()) {
-        reportTimer(prefix(entry.getKey()), entry.getValue(), timestamp, newTags);
+      for (Map.Entry<MetricName, Timer> entry : timers.entrySet()) {
+        MetricName metricName = entry.getKey();
+        newTags = TagUtils.mergeTags(newTags, metricName);
+        reportTimer(prefix(metricName.getKey()), entry.getValue(), timestamp, newTags);
       }
 
       request.send();
@@ -295,7 +292,7 @@ public class DatadogReporter extends ScheduledReporter {
       this.durationUnit = TimeUnit.MILLISECONDS;
       this.filter = MetricFilter.ALL;
       this.metricNameFormatter = new DefaultMetricNameFormatter();
-      this.tags = new ArrayList<String>();
+      this.tags = new ArrayList<>();
     }
 
     public Builder withHost(String host) {

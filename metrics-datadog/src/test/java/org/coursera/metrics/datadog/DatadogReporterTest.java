@@ -1,15 +1,7 @@
 package org.coursera.metrics.datadog;
 
-import com.codahale.metrics.Clock;
-import com.codahale.metrics.Counter;
-import com.codahale.metrics.Gauge;
-import com.codahale.metrics.Histogram;
-import com.codahale.metrics.Meter;
-import com.codahale.metrics.Metric;
-import com.codahale.metrics.MetricFilter;
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.Snapshot;
-import com.codahale.metrics.Timer;
+import io.dropwizard.metrics5.*;
+import io.dropwizard.metrics5.Timer;
 import org.coursera.metrics.datadog.DatadogReporter.Expansion;
 import org.coursera.metrics.datadog.model.DatadogGauge;
 import org.coursera.metrics.datadog.transport.Transport;
@@ -48,7 +40,7 @@ public class DatadogReporterTest {
     when(clock.getTime()).thenReturn(timestamp * 1000);
     when(transport.prepare()).thenReturn(request);
     metricsRegistry = new MetricRegistry();
-    tags = new ArrayList<String>();
+    tags = new ArrayList<>();
     tags.add("env:prod");
     tags.add("version:1.0.0");
     reporter = DatadogReporter
@@ -88,66 +80,66 @@ public class DatadogReporterTest {
   public void reportsByteGaugeValues() throws Exception {
     Gauge gauge = gauge((byte) 1);
 
-    reporter.report(map("gauge", gauge),
-            this.<Counter>map(),
-            this.<Histogram>map(),
-            this.<Meter>map(),
-            this.<Timer>map());
+    reporter.report(map(MetricName.build("gauge"), gauge),
+            this.map(),
+            this.map(),
+            this.map(),
+            this.map());
 
     gaugeTestHelper("gauge", (byte) 1, timestamp, HOST, tags);
   }
 
   @Test
   public void reportsShortGaugeValues() throws Exception {
-    reporter.report(map("gauge", gauge((short) 1)),
-                    this.<Counter>map(),
-                    this.<Histogram>map(),
-                    this.<Meter>map(),
-                    this.<Timer>map());
+    reporter.report(map(MetricName.build("gauge"), gauge((short) 1)),
+                    this.map(),
+                    this.map(),
+                    this.map(),
+                    this.map());
 
     gaugeTestHelper("gauge", (short) 1, timestamp, HOST, tags);
   }
 
   @Test
   public void reportsIntegerGaugeValues() throws Exception {
-    reporter.report(map("gauge", gauge(1)),
-                    this.<Counter>map(),
-                    this.<Histogram>map(),
-                    this.<Meter>map(),
-                    this.<Timer>map());
+    reporter.report(map(MetricName.build("gauge"), gauge(1)),
+                    this.map(),
+                    this.map(),
+                    this.map(),
+                    this.map());
 
     gaugeTestHelper("gauge", 1, timestamp, HOST, tags);
   }
 
   @Test
   public void reportsLongGaugeValues() throws Exception {
-    reporter.report(map("gauge", gauge(1L)),
-                    this.<Counter>map(),
-                    this.<Histogram>map(),
-                    this.<Meter>map(),
-                    this.<Timer>map());
+    reporter.report(map(MetricName.build("gauge"), gauge(1L)),
+                    this.map(),
+                    this.map(),
+                    this.map(),
+                    this.map());
 
     gaugeTestHelper("gauge", 1L, timestamp, HOST, tags);
   }
 
   @Test
   public void reportsFloatGaugeValues() throws Exception {
-    reporter.report(map("gauge", gauge(1.1f)),
-                    this.<Counter>map(),
-                    this.<Histogram>map(),
-                    this.<Meter>map(),
-                    this.<Timer>map());
+    reporter.report(map(MetricName.build("gauge"), gauge(1.1f)),
+                    this.map(),
+                    this.map(),
+                    this.map(),
+                    this.map());
 
     gaugeTestHelper("gauge", 1.1f, timestamp, HOST, tags);
   }
 
   @Test
   public void reportsDoubleGaugeValues() throws Exception {
-    reporter.report(map("gauge", gauge(1.1)),
-                    this.<Counter>map(),
-                    this.<Histogram>map(),
-                    this.<Meter>map(),
-                    this.<Timer>map());
+    reporter.report(map(MetricName.build("gauge"), gauge(1.1)),
+                    this.map(),
+                    this.map(),
+                    this.map(),
+                    this.map());
 
     gaugeTestHelper("gauge", 1.1, timestamp, HOST, tags);
   }
@@ -159,11 +151,11 @@ public class DatadogReporterTest {
     final Counter counter = mock(Counter.class);
     when(counter.getCount()).thenReturn(100L);
 
-    reporter.report(map("gauge", gauge),
-                    this.<Counter>map("counter", counter),
-                    this.<Histogram>map(),
-                    this.<Meter>map(),
-                    this.<Timer>map());
+    reporter.report(map(MetricName.build("gauge"), gauge),
+                    this.map(MetricName.build("counter"), counter),
+                    this.map(),
+                    this.map(),
+                    this.map());
 
     final InOrder inOrder = inOrder(transport, request);
     inOrder.verify(transport).prepare();
@@ -180,11 +172,11 @@ public class DatadogReporterTest {
     final Counter counter = mock(Counter.class);
     when(counter.getCount()).thenReturn(100L);
 
-    reporter.report(this.<Gauge>map(),
-                    this.<Counter>map("counter", counter),
-                    this.<Histogram>map(),
-                    this.<Meter>map(),
-                    this.<Timer>map());
+    reporter.report(this.map(),
+                    this.map(MetricName.build("counter"), counter),
+                    this.map(),
+                    this.map(),
+                    this.map());
 
     final InOrder inOrder = inOrder(transport, request);
     inOrder.verify(transport).prepare();
@@ -215,11 +207,11 @@ public class DatadogReporterTest {
 
     when(histogram.getSnapshot()).thenReturn(snapshot);
 
-    reporter.report(this.<Gauge>map(),
-                    this.<Counter>map(),
-                    this.<Histogram>map("histogram", histogram),
-                    this.<Meter>map(),
-                    this.<Timer>map());
+    reporter.report(this.map(),
+                    this.map(),
+                    this.map(MetricName.build("histogram"), histogram),
+                    this.map(),
+                    this.map());
 
     final InOrder inOrder = inOrder(transport, request);
     inOrder.verify(transport).prepare();
@@ -250,11 +242,11 @@ public class DatadogReporterTest {
     when(meter.getFifteenMinuteRate()).thenReturn(4.0);
     when(meter.getMeanRate()).thenReturn(5.0);
 
-    reporter.report(this.<Gauge>map(),
-                    this.<Counter>map(),
-                    this.<Histogram>map(),
-                    this.<Meter>map("meter", meter),
-                    this.<Timer>map());
+    reporter.report(this.map(),
+                    this.map(),
+                    this.map(),
+                    this.map(MetricName.build("meter"), meter),
+                    this.map());
 
     final InOrder inOrder = inOrder(transport, request);
     inOrder.verify(transport).prepare();
@@ -302,11 +294,11 @@ public class DatadogReporterTest {
 
     when(timer.getSnapshot()).thenReturn(snapshot);
 
-    reporter.report(this.<Gauge>map(),
-            this.<Counter>map(),
-            this.<Histogram>map(),
-            this.<Meter>map(),
-            map("timer", timer));
+    reporter.report(this.map(),
+            this.map(),
+            this.map(),
+            this.map(),
+            map(MetricName.build("timer"), timer));
 
     final InOrder inOrder = inOrder(transport, request);
     inOrder.verify(transport).prepare();
@@ -338,11 +330,11 @@ public class DatadogReporterTest {
     final Counter counter = mock(Counter.class);
     when(counter.getCount()).thenReturn(100L);
 
-    reporterWithPrefix.report(this.<Gauge>map(),
-            this.<Counter>map("counter", counter),
-            this.<Histogram>map(),
-            this.<Meter>map(),
-            this.<Timer>map());
+    reporterWithPrefix.report(this.map(),
+            this.map(MetricName.build("counter"), counter),
+            this.map(),
+            this.map(),
+            this.map());
 
     verify(request).addGauge(new DatadogGauge("testprefix.counter", 100L, timestamp, HOST, tags));
     verify(request, never()).addGauge(new DatadogGauge("counter", 100L, timestamp, HOST, tags));
@@ -350,7 +342,7 @@ public class DatadogReporterTest {
 
   @Test
   public void reportsWithCallback() throws Exception {
-    List<String> dynamicTags = new ArrayList<String>();
+    List<String> dynamicTags = new ArrayList<>();
     dynamicTags.add("status:active");
     dynamicTags.add("speed:29");
 
@@ -359,11 +351,11 @@ public class DatadogReporterTest {
     final Counter counter = mock(Counter.class);
     when(counter.getCount()).thenReturn(100L);
 
-    reporterWithCallback.report(this.<Gauge>map(),
-            this.<Counter>map("counter", counter),
-            this.<Histogram>map(),
-            this.<Meter>map(),
-            this.<Timer>map());
+    reporterWithCallback.report(this.map(),
+            this.map(MetricName.build("counter"), counter),
+            this.map(),
+            this.map(),
+            this.map());
 
     verify(request).addGauge(new DatadogGauge("counter", 100L, timestamp, HOST, dynamicTags));
   }
@@ -392,11 +384,11 @@ public class DatadogReporterTest {
       .build();
 
     reporterWithMetricNameFormatter.report(
-      this.map("gauge", gauge),
-      this.map("counter", counter),
-      this.<Histogram>map(),
-      this.<Meter>map(),
-      this.<Timer>map()
+      this.map(MetricName.build("gauge"), gauge),
+      this.map(MetricName.build("counter"), counter),
+      this.map(),
+      this.map(),
+      this.map()
     );
 
     verify(request).addGauge(
@@ -521,11 +513,11 @@ public class DatadogReporterTest {
 
     when(timer.getSnapshot()).thenReturn(snapshot);
 
-    reporterWithExpansions.report(this.<Gauge>map(),
-        this.<Counter>map(),
-        this.<Histogram>map(),
-        this.<Meter>map(),
-        map("timer", timer));
+    reporterWithExpansions.report(this.map(),
+        this.map(),
+        this.map(),
+        this.map(),
+        map(MetricName.build("timer"), timer));
 
     final InOrder inOrder = inOrder(transport, request);
     inOrder.verify(transport).prepare();
@@ -540,24 +532,24 @@ public class DatadogReporterTest {
     verifyNoMoreInteractions(transport, request);
   }
 
-  private class NameMetricFilter implements MetricFilter {
+  private static class NameMetricFilter implements MetricFilter {
     private final String include;
 
     private NameMetricFilter(final String include) {
       this.include = include;
     }
 
-    public boolean matches(final String name, final Metric metric) {
-      return (name.contains(include));
+    public boolean matches(final MetricName name, final Metric metric) {
+      return (name.getKey().contains(include));
     }
   }
 
-  private <T> SortedMap<String, T> map() {
-    return new TreeMap<String, T>();
+  private <T> SortedMap<MetricName, T> map() {
+    return new TreeMap<>();
   }
 
-  private <T> SortedMap<String, T> map(String name, T metric) {
-    final TreeMap<String, T> map = new TreeMap<String, T>();
+  private <T> SortedMap<MetricName, T> map(MetricName name, T metric) {
+    final TreeMap<MetricName, T> map = new TreeMap<>();
     map.put(name, metric);
     return map;
   }
