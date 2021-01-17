@@ -90,7 +90,7 @@ public class DatadogReporter extends ScheduledReporter {
     request = transport.prepare();
 
     for (Map.Entry<String, Gauge> entry : gauges.entrySet()) {
-      final String metricName = entry.getKey();
+        final String metricName = entry.getKey();
         reportGauge(prefix(metricName), entry.getValue(), timestamp, merticTags(metricName, newTags));
       }
 
