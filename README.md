@@ -125,6 +125,7 @@ metrics:
       expansions:                           # Optional. Defaults to (all).
       metricNameFormatter:                  # Optional. Default is "default".
       dynamicTagsCallback:                  # Optional. Defaults to (none).
+      metricNameTagsCallback:               # Optional. Defaults to (none).
       transport:
         type: http
         apiKey: <apiKey>
@@ -281,6 +282,16 @@ Similar to the `MetricNameFormatter` steps, we need to:
 
 See above instructions for details.
 
+#### Metric Name Tags Callback
+
+Similar to the `MetricNameFormatter` steps, we need to:
+
+1. Create a MetricNameTagsCallback
+2. Create a MetricNameTagsCallbackFactory with `@JsonTypeName` annotation
+3. Add the Factory to `org.coursera.metrics.datadog.MetricNameTagsCallbackFactory` file
+
+See above instructions for details.
+
 ## Maven Info
 
 Metrics datadog reporter is available as an artifact on
@@ -288,14 +299,14 @@ Metrics datadog reporter is available as an artifact on
 
 * Group: org.coursera
 * Artifact: metrics-datadog
-* Version: 1.1.13
+* Version: 1.1.14
 
 Dropwizard datadog reporter is available as an artifact on
 [Maven Central](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22org.coursera%22%20AND%20a%3A%22dropwizard-metrics-datadog%22)
 
 * Group: org.coursera
 * Artifact: dropwizard-metrics-datadog
-* Version: 1.1.13
+* Version: 1.1.14
 
 ## Contributing
 
