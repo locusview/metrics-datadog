@@ -4,10 +4,7 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.ScheduledReporter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import org.coursera.metrics.datadog.DatadogReporter;
-import org.coursera.metrics.datadog.DefaultMetricNameFormatterFactory;
-import org.coursera.metrics.datadog.DynamicTagsCallbackFactory;
-import org.coursera.metrics.datadog.MetricNameFormatterFactory;
+import org.coursera.metrics.datadog.*;
 import org.coursera.metrics.datadog.transport.AbstractTransportFactory;
 
 import javax.validation.Valid;
@@ -15,6 +12,7 @@ import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 
 import static org.coursera.metrics.datadog.DatadogReporter.Expansion;
 
@@ -30,6 +28,10 @@ public class DatadogReporterFactory extends BaseReporterFactory {
     @Valid
     @JsonProperty
     private DynamicTagsCallbackFactory dynamicTagsCallback = null;
+
+    @Valid
+    @JsonProperty
+    private MetricNameTagsCallbackFactory metricNameTagsCallback = null;
 
     @JsonProperty
     private String prefix = null;
@@ -58,7 +60,8 @@ public class DatadogReporterFactory extends BaseReporterFactory {
                     .withPrefix(prefix)
                     .withExpansions(expansions)
                     .withMetricNameFormatter(metricNameFormatter.build())
-                    .withDynamicTagCallback(dynamicTagsCallback != null ? dynamicTagsCallback.build() : null)
+                    .withDynamicTagCallback(Optional.ofNullable(dynamicTagsCallback).map(DynamicTagsCallbackFactory::build).orElse(null))
+                    .withMetricNameTagsCallback(Optional.ofNullable(metricNameTagsCallback).map(MetricNameTagsCallbackFactory::build).orElse(null))
                     .filter(getFilter())
                     .convertDurationsTo(getDurationUnit())
                     .convertRatesTo(getRateUnit());
