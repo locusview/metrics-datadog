@@ -17,11 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.Objects.nonNull;
@@ -65,7 +61,7 @@ public class DatadogReporter extends ScheduledReporter {
     this.host = host;
     this.expansions = expansions;
     this.metricNameFormatter = metricNameFormatter;
-    this.tags = (tags == null) ? new ArrayList<>() : tags;
+    this.tags = (tags == null) ? new LinkedList<>() : tags;
     this.transport = transport;
     this.prefix = prefix;
     this.tagsCallback = tagsCallback;
@@ -91,27 +87,32 @@ public class DatadogReporter extends ScheduledReporter {
 
     for (Map.Entry<String, Gauge> entry : gauges.entrySet()) {
         final String metricName = entry.getKey();
-        reportGauge(prefix(metricName), entry.getValue(), timestamp, merticTags(metricName, newTags));
+        final List<String> metricTags = createMetricTags(metricName, newTags);
+        reportGauge(prefix(metricName), entry.getValue(), timestamp, metricTags);
       }
 
       for (Map.Entry<String, Counter> entry : counters.entrySet()) {
         final String metricName = entry.getKey();
-        reportCounter(prefix(metricName), entry.getValue(), timestamp, merticTags(metricName, newTags));
+        final List<String> metricTags = createMetricTags(metricName, newTags);
+        reportCounter(prefix(metricName), entry.getValue(), timestamp, metricTags);
       }
 
       for (Map.Entry<String, Histogram> entry : histograms.entrySet()) {
         final String metricName = entry.getKey();
-        reportHistogram(prefix(metricName), entry.getValue(), timestamp, merticTags(metricName, newTags));
+        final List<String> metricTags = createMetricTags(metricName, newTags);
+        reportHistogram(prefix(metricName), entry.getValue(), timestamp, metricTags);
       }
 
       for (Map.Entry<String, Meter> entry : meters.entrySet()) {
         final String metricName = entry.getKey();
-        reportMetered(prefix(metricName), entry.getValue(), timestamp, merticTags(metricName, newTags));
+        final List<String> metricTags = createMetricTags(metricName, newTags);
+        reportMetered(prefix(metricName), entry.getValue(), timestamp, metricTags);
       }
 
       for (Map.Entry<String, Timer> entry : timers.entrySet()) {
         final String metricName = entry.getKey();
-        reportTimer(prefix(metricName), entry.getValue(), timestamp, merticTags(metricName, newTags));
+        final List<String> metricTags = createMetricTags(metricName, newTags);
+        reportTimer(prefix(metricName), entry.getValue(), timestamp, metricTags);
       }
 
       request.send();
@@ -253,7 +254,7 @@ public class DatadogReporter extends ScheduledReporter {
     return tags;
   }
 
-  private List<String> merticTags(String name, List<String> tags) {
+  private List<String> createMetricTags(String name, List<String> tags) {
     if (nonNull(metricNameTagsCallback)) {
       List<String> dynamicTags = metricNameTagsCallback.getTagsFor(name);
       return mergeNonEmptyTags(tags, dynamicTags);
