@@ -58,7 +58,7 @@
         </contributor>
     </contributors>
     <properties>
-        <metrics.version>4.1.18</metrics.version>
+        <metrics.version>4.1.19</metrics.version>
         <jackson.version>2.12.1</jackson.version>
         <dropwizard.version>2.0.20</dropwizard.version>
         <httpclient.version>4.5.13</httpclient.version>
