@@ -60,7 +60,7 @@
     <properties>
         <metrics.version>4.1.18</metrics.version>
         <jackson.version>2.12.1</jackson.version>
-        <dropwizard.version>2.0.20</dropwizard.version>
+        <dropwizard.version>2.0.22</dropwizard.version>
         <httpclient.version>4.5.13</httpclient.version>
     </properties>
     <build>
